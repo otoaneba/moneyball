@@ -1,3 +1,69 @@
+/* Add theme variables */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #13274F;
+  --control-bg: #f8f9fa;
+  --chart-bg: #ffffff;
+  --border-color: #ccc;
+}
+
+.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --control-bg: #2d2d2d;
+  --chart-bg: #1a1a1a;
+  --border-color: #444;
+}
+
+.app {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.header {
+  color: var(--text-color);
+}
+
+.controls {
+  padding: 2rem 4rem;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  background-color: var(--control-bg);
+  border-radius: 8px;
+  margin: 0;
+  margin-right: 300px;
+  margin-bottom: 1rem;
+}
+
+.chart-container {
+  padding: 2rem;
+  margin: 0 2rem;
+  background-color: var(--chart-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: calc(100% - 4rem);
+}
+
+.theme-toggle {
+  padding: 8px 12px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 2rem;
+}
+
+/* Update existing styles to use variables */
+.controls select {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
 .App {
   text-align: center;
 }
@@ -40,12 +106,6 @@
   margin-right: 1rem;
 }
 
-.header {
-  padding-left: 2rem;
-  color: #13274F;
-  margin: 0;  /* remove margin since it's handled by container */
-}
-
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -53,18 +113,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.controls {
-  padding: 2rem 4rem;
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  margin: 0;
-  margin-right: 300px;
-  margin-bottom: 1rem;
 }
 
 .controls select {
@@ -79,12 +127,6 @@
   align-items: center;
 }
 
-.chart-container {
-  padding: 2rem;
-  margin: 0;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  width: calc(100% - 4rem);
-  margin: 0 2rem;
+.era-toggle {
+  margin-left: auto;  /* Push to the right */
 }

@@ -97,10 +97,18 @@ const STAT_CATEGORIES = {
   small: ['avg', 'obp', 'slg', 'ops', 'era', 'whip'],
 };
 
-export function SeasonStatsViz({ data }) {
+// Add manager data at the top of the file
+const MANAGERS = [
+  { name: 'Bobby Cox', startYear: 2006, endYear: 2011, color: '#90e0ef' },
+  { name: 'Fredi González', startYear: 2011, endYear: 2016.4, color: '#faedcd' },
+  { name: 'Brian Snitker', startYear: 2016.4, endYear: 2024, color: '#ffcad4' }
+];
+
+export function SeasonStatsViz({ data, isDarkMode }) {
   const [statGroup, setStatGroup] = useState('hitting');
   const [yStat, setYStat] = useState('homeRuns');
   const [sizeStat, setSizeStat] = useState('avg');
+  const [activeTab, setActiveTab] = useState('gm');  // 'gm' or 'manager'
   const svgRef = useRef(null);
   
   // Modify getStatRange to handle different stat categories
@@ -128,6 +136,10 @@ export function SeasonStatsViz({ data }) {
   useEffect(() => {
     // Clear previous visualization
     d3.select(svgRef.current).selectAll('*').remove();
+
+    // Define theme colors first
+    const textColor = isDarkMode ? '#ffffff' : '#333333';
+    const axisColor = isDarkMode ? '#666666' : '#cccccc';
 
     // Get data for all years first
     const plotData = data.map(yearData => ({
@@ -187,7 +199,7 @@ export function SeasonStatsViz({ data }) {
     })().clamp(true);
 
     // Set up dimensions
-    const width = 1200;  // Increased from 1000
+    const width = 1300;  // Increased from 1000
     const height = 600;  // Increased from 400
     const margin = { 
       top: 40,     // Increased from 20
@@ -206,7 +218,7 @@ export function SeasonStatsViz({ data }) {
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Create scales with padding for x-axis
-    const yearPadding = 0.5; // Half year padding on each side
+    const yearPadding = 0.5; // padding between years
     const xScale = d3.scaleLinear()
       .domain([
         d3.min(plotData, d => d.year) - yearPadding,
@@ -218,7 +230,7 @@ export function SeasonStatsViz({ data }) {
       .domain([0, d3.max(plotData, d => d.y) * 1.1])
       .range([innerHeight, 0]);
 
-    // Add axes with adjusted ticks
+    // Add axes with adjusted ticks and rotation
     svg.append('g')
       .attr('transform', `translate(0,${innerHeight})`)
       .call(
@@ -226,7 +238,11 @@ export function SeasonStatsViz({ data }) {
           .tickFormat(d3.format('d')) // Format as integers
           .ticks(plotData.length) // Show all years
           .tickValues(plotData.map(d => d.year)) // Only show actual years
-      );
+      )
+      .selectAll("text")  
+      .style("text-anchor", "middle")
+      .attr("dx", "0em")
+      .attr("dy", "1em");
 
     // Add axis labels with formatted values
     svg.append('text')
@@ -258,9 +274,28 @@ export function SeasonStatsViz({ data }) {
       .style('font-size', '16px')
       .text(`${STAT_GROUPS[statGroup].label} Stats Over Time`);
 
+    // Add background highlights based on active tab
+    const eras = activeTab === 'gm' ? [
+      { name: 'Frank Wren Era', startYear: 2007, endYear: 2014, color: '#13274F' },
+      { name: 'John Hart Era', startYear: 2014, endYear: 2015, color: '#1982FC' },
+      { name: 'John Coppolella Era', startYear: 2015, endYear: 2017, color: '#eaaa00' },
+      { name: 'Alex Anthopoulos Era', startYear: 2017, endYear: 2024, color: '#CE1141' }
+    ] : MANAGERS;
+
+    // Add background highlights for each era
+    eras.forEach(era => {
+      svg.append('rect')
+        .attr('x', xScale(era.startYear))
+        .attr('y', 0)
+        .attr('width', xScale(era.endYear) - xScale(era.startYear))
+        .attr('height', innerHeight)
+        .style('fill', era.color)
+        .style('opacity', activeTab === 'manager' ? 0.15 : 0.05);  // Increased opacity for managers
+    });
+
     // Add data points with transitions
     const circles = svg.selectAll('circle.data-point')
-      .data(plotData, d => d.year);  // Use year as the key for matching
+      .data(plotData, d => d.year);
 
     // Remove old circles with fade out
     circles.exit()
@@ -269,15 +304,18 @@ export function SeasonStatsViz({ data }) {
       .style('opacity', 0)
       .remove();
 
-    // Add new circles (only for years that didn't exist before)
+    // Filter out 2020 for calculations but keep it for display
+    const filteredPlotData = plotData.filter(d => d.year !== 2020);
+
+    // Modify the circles code to handle 2020 differently
     const circlesEnter = circles.enter()
       .append('circle')
       .attr('class', 'data-point')
       .attr('cx', d => xScale(d.year))
-      .attr('cy', d => yScale(d.y))  // Start at final y position
-      .attr('r', 0)  // Start with zero radius
-      .style('fill', '#69b3a2')
-      .style('opacity', 0);  // Start transparent
+      .attr('cy', d => yScale(d.y))
+      .attr('r', 0)
+      .style('fill', d => d.year === 2020 ? '#999999' : '#69b3a2')  // Gray for 2020
+      .style('opacity', 0);
 
     // Update all circles with transition
     circles.merge(circlesEnter)
@@ -287,7 +325,8 @@ export function SeasonStatsViz({ data }) {
       .attr('cx', d => xScale(d.year))
       .attr('cy', d => yScale(d.y))
       .attr('r', d => sizeScale(d.size))
-      .style('opacity', 0.6);
+      .style('fill', d => d.year === 2020 ? '#999999' : '#69b3a2')  // Keep gray for 2020
+      .style('opacity', d => d.year === 2020 ? 0.3 : 0.6);  // Lower opacity for 2020
 
     // Add tooltips (after transition to avoid duplicates)
     circles.merge(circlesEnter)
@@ -310,14 +349,14 @@ export function SeasonStatsViz({ data }) {
         `${STAT_GROUPS[statGroup].stats[sizeStat]}: ${formatNumber(d.size)}`
       );
 
-    // Find min, middle, and max points based on size value
-    const sortedData = [...plotData].sort((a, b) => a.size - b.size);
+    // Find min, middle, and max points based on size value (excluding 2020)
+    const sortedData = [...filteredPlotData].sort((a, b) => a.size - b.size);
     const labelPoints = [
       sortedData[0],  // min size
       sortedData[Math.floor(sortedData.length / 2)],  // middle size
       sortedData[sortedData.length - 1],  // max size
       plotData.find(d => d.year === 2021)  // Add 2021 World Series year
-    ].filter(Boolean);  // Filter out undefined in case 2021 isn't in the data
+    ].filter(Boolean);
 
     // Use the same values for both dots and legend
     const legendData = labelPoints.slice(0, 3).map(d => d.size);  // Only use min/mid/max for legend
@@ -396,7 +435,7 @@ export function SeasonStatsViz({ data }) {
         .attr('y', yScale(worldSeriesPoint.y) - sizeScale(worldSeriesPoint.size) - 20)
         .attr('text-anchor', 'middle')
         .style('font-size', '12px')
-        .style('fill', '#CE1141')  // Braves red
+        .style('fill', '#CE1141')
         .style('opacity', 0)
         .text('World Series Champions')
         .transition()
@@ -405,15 +444,47 @@ export function SeasonStatsViz({ data }) {
         .style('opacity', 1);
     }
 
+    // Add label for 2020 shortened season
+    const covidPoint = plotData.find(d => d.year === 2020);
+    if (covidPoint) {
+      svg.append('text')
+        .attr('class', 'covid-season-label')
+        .attr('x', xScale(2020))
+        .attr('y', yScale(covidPoint.y) - sizeScale(covidPoint.size) - 15)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '11px')
+        .style('fill', '#666')  // Matching the gray dot
+        .style('opacity', 0)
+        .text('60-Game Season*')
+        .transition()
+        .duration(500)
+        .delay(1500)
+        .style('opacity', 0.8);
+    }
+
     // Move legend further right
     const legendGroup = svg.append('g')
       .attr('transform', `translate(${innerWidth + 100}, ${margin.top})`);  // Increased from 60
 
-    // Calculate the maximum circle size for legend spacing
+    // Calculate legend dimensions dynamically
     const maxCircleSize = sizeScale(sizeConfig.max);
     const legendPadding = 20;
     const legendWidth = maxCircleSize + 100;  // Space for circle + label
-    const legendHeight = (50 * 3) + 80;  // Increased spacing
+
+    // Calculate heights for different sections
+    const titleHeight = 30;  // Space for "Size: stat" title
+    const dotLegendHeight = (legendData.length * 50) + 20;  // Space for size dots
+    const eraLegendHeight = ((activeTab === 'gm' ? 4 : 3) * 25) + 20;  // Space for era section
+    const spaceBetweenSections = 30;
+
+    // Total height is sum of all sections plus padding
+    const legendHeight = titleHeight + 
+                        dotLegendHeight + 
+                        spaceBetweenSections + 
+                        eraLegendHeight;
+
+    // Update era labels position to be dynamic
+    const eraLabelsY = titleHeight + dotLegendHeight + spaceBetweenSections;
 
     // Add legend background and border
     legendGroup.append('rect')
@@ -421,8 +492,8 @@ export function SeasonStatsViz({ data }) {
       .attr('y', -legendPadding)
       .attr('width', legendWidth + (legendPadding * 2))
       .attr('height', legendHeight)
-      .attr('fill', 'white')
-      .attr('stroke', '#ccc')
+      .attr('fill', isDarkMode ? '#2d2d2d' : 'white')
+      .attr('stroke', isDarkMode ? '#444' : '#ccc')
       .attr('stroke-width', 1)
       .attr('rx', 5)
       .attr('ry', 5);
@@ -447,7 +518,8 @@ export function SeasonStatsViz({ data }) {
       .text((d, i) => {
         const label = i === 0 ? "Min: " : 
                      i === 1 ? "Mid: " : 
-                     "Max: ";
+                     i === 2 ? "Max: " :
+                     "World Series: ";
         return label + formatNumber(d);
       });
 
@@ -462,11 +534,59 @@ export function SeasonStatsViz({ data }) {
       .style('fill', '#69b3a2')
       .style('opacity', 0.6);
 
+    // Update the era labels based on active tab
+    legendGroup.append('g')
+      .attr('transform', `translate(0, ${eraLabelsY})`)
+      .call(g => {
+        const eras = activeTab === 'gm' ? [
+          { name: 'Frank Wren Era', color: '#13274F' },
+          { name: 'John Hart Era', color: '#1982FC' },
+          { name: 'John Coppolella Era', color: '#eaaa00' },
+          { name: 'Alex Anthopoulos Era', color: '#CE1141' }
+        ] : MANAGERS;
+        
+        eras.forEach((era, i) => {
+          // Add colored rectangle
+          g.append('rect')
+            .attr('x', 0)
+            .attr('y', i * 25)
+            .attr('width', 10)
+            .attr('height', 10)
+            .attr('fill', era.color)
+            .attr('opacity', activeTab === 'manager' ? 0.3 : 0.1);  // Increased opacity for managers
+          
+          // Add label
+          g.append('text')
+            .attr('x', 20)
+            .attr('y', i * 25 + 9)
+            .style('font-size', '12px')
+            .style('fill', era.color)
+            .text(era.name);
+        });
+      });
+
     // Inside useEffect, after creating plotData
     console.log('2023 Data:', data.find(d => d.year === 2023));
     console.log('Plot Data:', plotData);
 
-  }, [statGroup, yStat, sizeStat, data]);
+    // Update text colors
+    svg.selectAll('text')
+      .style('fill', textColor);
+
+    // Update axis colors
+    svg.selectAll('.tick line')
+      .style('stroke', axisColor);
+    svg.selectAll('.tick text')
+      .style('fill', textColor);
+    svg.selectAll('.domain')
+      .style('stroke', axisColor);
+
+    // Update legend background
+    legendGroup.select('rect')
+      .attr('fill', isDarkMode ? '#2d2d2d' : 'white')
+      .attr('stroke', isDarkMode ? '#444' : '#ccc');
+
+  }, [statGroup, yStat, sizeStat, data, isDarkMode, activeTab]);
 
   return (
     <div className="chart-container">
@@ -492,6 +612,14 @@ export function SeasonStatsViz({ data }) {
             {Object.entries(STAT_GROUPS[statGroup].stats).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
+          </select>
+        </label>
+
+        <label className="era-toggle">
+          Era View:
+          <select value={activeTab} onChange={e => setActiveTab(e.target.value)}>
+            <option value="gm">General Managers</option>
+            <option value="manager">Managers</option>
           </select>
         </label>
       </div>

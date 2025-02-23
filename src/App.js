@@ -7,6 +7,7 @@ function App() {
   const [bravesStats, setBravesStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     // Fetch all stats from our saved JSON files
@@ -26,12 +27,18 @@ function App() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div>
+    <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
       <div className="header-container">
         <img src={logo} alt="Braves Logo" className="header-logo" />
         <h1 className="header">Atlanta Braves 2006-2024 Stats Visualization</h1>
+        <button 
+          className="theme-toggle"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+        >
+          {isDarkMode ? '☀️' : '🌙'}
+        </button>
       </div>
-      <SeasonStatsViz data={bravesStats} />
+      <SeasonStatsViz data={bravesStats} isDarkMode={isDarkMode} />
     </div>
   );
 }
