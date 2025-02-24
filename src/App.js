@@ -7,7 +7,7 @@ function App() {
   const [bravesStats, setBravesStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     // Fetch all stats from our saved JSON files
