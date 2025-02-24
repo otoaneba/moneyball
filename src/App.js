@@ -10,14 +10,25 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    // Fetch all stats from our saved JSON files
-    fetch('http://localhost:8080/api/stats/all')
-      .then(response => response.json())
+    // Determine the data source based on environment
+    const dataUrl = process.env.NODE_ENV === 'production' 
+      ? `${process.env.PUBLIC_URL}/data/all_stats.json`
+      : '/api/stats/all';
+
+    // Fetch all stats
+    fetch(dataUrl)  // Remove credentials since we're handling CORS on the server
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         setBravesStats(data);
         setLoading(false);
       })
       .catch(err => {
+        console.error('Fetch error:', err);
         setError(err.message);
         setLoading(false);
       });

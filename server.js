@@ -4,30 +4,20 @@ const path = require('path');
 const cors = require('cors');
 const app = express();
 
-// CORS configuration
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  optionsSuccessStatus: 204,
-  allowedHeaders: ['Content-Type']
-};
+// Add minimal CORS setup
+app.use(cors());
 
-// Apply CORS to all routes
-app.use(cors(corsOptions));
+// Add back essential middleware
+app.use(express.json());  // This is needed for parsing JSON bodies
 
-// Handle OPTIONS preflight requests
-app.options('*', cors(corsOptions));
-
-app.use(express.json());
-
-// Add logging middleware
+// Add logging middleware with more details
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
+    console.log('Headers:', req.headers);
     next();
 });
 
-// Add this endpoint BEFORE the static file middleware
+// Update the /api/stats/all endpoint with better error handling
 app.get('/api/stats/all', async (req, res) => {
   try {
     const statsDir = path.join(__dirname, 'public', 'stats');
@@ -46,10 +36,22 @@ app.get('/api/stats/all', async (req, res) => {
     const jsonFiles = files.filter(file => file.endsWith('.json'));
     console.log('JSON files:', jsonFiles);
     
+    if (jsonFiles.length === 0) {
+      return res.status(404).json({ error: 'No stats files found' });
+    }
+    
     const allStats = [];
     for (const file of jsonFiles) {
       const data = await fs.readFile(path.join(statsDir, file), 'utf8');
-      allStats.push(JSON.parse(data));
+      try {
+        allStats.push(JSON.parse(data));
+      } catch (e) {
+        console.error(`Error parsing ${file}:`, e);
+      }
+    }
+    
+    if (allStats.length === 0) {
+      return res.status(404).json({ error: 'No valid stats found' });
     }
     
     console.log(`Loaded ${allStats.length} stat files`);
