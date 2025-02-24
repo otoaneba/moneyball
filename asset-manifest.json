@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/moneyball/static/css/main.efb388d0.css",
+    "main.js": "/moneyball/static/js/main.84dfa7e3.js",
+    "static/js/453.a070b63b.chunk.js": "/moneyball/static/js/453.a070b63b.chunk.js",
+    "static/media/t144_header_primary.svg": "/moneyball/static/media/t144_header_primary.9447d61fbc70758845503a3bc86b300f.svg",
+    "index.html": "/moneyball/index.html",
+    "main.efb388d0.css.map": "/moneyball/static/css/main.efb388d0.css.map",
+    "main.84dfa7e3.js.map": "/moneyball/static/js/main.84dfa7e3.js.map",
+    "453.a070b63b.chunk.js.map": "/moneyball/static/js/453.a070b63b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.efb388d0.css",
+    "static/js/main.84dfa7e3.js"
+  ]
+}
