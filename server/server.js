@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 // Azure AI configuration
-const endpoint = "https://ai-supportdeepseekai250024594703.services.ai.azure.com/models";
+const endpoint = "https://ai-supportdeepseekai250024594703.services.ai.azure.com/";
 const deploymentId = "gpt-4o-mini"; //"DeepSeek-R1-statstream"; 
 const clientOptions = { 
   credentials: {
