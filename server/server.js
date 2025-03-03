@@ -205,8 +205,13 @@ app.post('/api/chat', async (req, res) => {
     //.asNodeStream();
 
     // Use this for non-streaming response
+    console.log('Raw response:', {
+      status: response.status,
+      body: response.body
+    });
+
     if (isUnexpected(response)) {
-      throw new Error('Unexpected response from Azure AI', response);
+      throw new Error(`Unexpected response from Azure AI: ${JSON.stringify(response.body)}`);
     }
     // Use this for streaming response
     // const stream = response.body;
