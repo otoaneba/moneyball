@@ -18,9 +18,16 @@ const statsPath = path.join(publicPath, 'stats');
 
 const app = express();
 
+// Add environment variables support
+const PORT = process.env.PORT || 8080;
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'https://otoaneba.github.io'
+];
+
 // Update CORS setup
 app.use(cors({
-  origin: 'http://localhost:3000', // Allow React dev server
+  origin: ALLOWED_ORIGINS,
   methods: ['GET', 'POST'],
   credentials: true
 }));
@@ -255,7 +262,6 @@ app.post('/api/chat', async (req, res) => {
 app.use('/api/stats', express.static(statsPath));
 app.use(express.static(buildPath));
 
-const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
 
 /// Find and provide correlation of pitching stats for the Atlanta Braves' bubble chart from 2006 to 2024, where the y-axis is the groundOuts and the bubble size is the walksPer9Inn.

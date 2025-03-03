@@ -1,3 +1,7 @@
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://moneyball-oign.onrender.com'  // Replace with your actual Render URL
+  : '';
+
 // Only keep the API calls to backend
 export async function getChatCompletion(messages) {
   // Use this for non-streaming response
@@ -24,7 +28,7 @@ export async function getChatCompletion(messages) {
     let fullResponse = '';
 
     // Send POST request first
-    fetch('/api/chat', {
+    fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages })
