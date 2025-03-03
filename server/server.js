@@ -198,63 +198,66 @@ app.post('/api/chat', async (req, res) => {
         max_tokens: 800,
         temperature: 0.7,
         model: deploymentId,
-        stream: true
+        stream: false
       }
-    }).asNodeStream();
+    })
+    // add this for streaming response
+    //.asNodeStream();
 
     // Use this for non-streaming response
-    // if (isUnexpected(response)) {
-    //   throw new Error('Unexpected response from Azure AI');
-    // }
-    const stream = response.body;
-    if (!stream) {
-      throw new Error('No stream received');
+    if (isUnexpected(response)) {
+      throw new Error('Unexpected response from Azure AI');
     }
+    // Use this for streaming response
+    // const stream = response.body;
+    // if (!stream) {
+    //   throw new Error('No stream received');
+    // }
     console.log('Stream received:', stream);
   // Use this for non-streaming response
-  //   if (!response.body?.choices?.[0]?.message?.content) {
-  //     throw new Error('No content in response');
-  //   }
-
-  //   // const content = response.body.choices[0].message.content;
-  //   // const startIndex = content.indexOf('</think>');
-    
-  //   // Check if client is still connected
-  //   if (!res.writableEnded) {
-  //     res.json({ 
-  //       content: response.body.choices[0].message.content // startIndex > -1 ? content.substring(startIndex + 8) : content 
-  //     });
-  //   }
-
-  // } catch (error) {
-  //   console.error('Chat error:', error.message);
-  //   if (!res.writableEnded) {
-  //     res.status(500).json({ error: error.message });
-  //   }
-  // }
-
-    const sseStream = createSseStream(stream);
-    
-    for await (const event of sseStream) {
-      if (event.data === "[DONE]") {
-        res.write('data: [DONE]\n\n');
-        return res.end();
-      }
-      
-      try {
-        const content = JSON.parse(event.data).choices[0]?.delta?.content || '';
-        if (content) {
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
-        }
-      } catch (error) {
-        console.error('Error parsing chunk:', error);
-      }
+    if (!response.body?.choices?.[0]?.message?.content) {
+      throw new Error('No content in response');
     }
+
+    // const content = response.body.choices[0].message.content;
+    // const startIndex = content.indexOf('</think>');
+    
+    // Check if client is still connected
+    if (!res.writableEnded) {
+      res.json({ 
+        content: response.body.choices[0].message.content // startIndex > -1 ? content.substring(startIndex + 8) : content 
+      });
+    }
+
   } catch (error) {
-    console.error('Chat error:', error);
-    res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-    res.end();
+    console.error('Chat error:', error.message);
+    if (!res.writableEnded) {
+      res.status(500).json({ error: error.message });
+    }
   }
+  // use this for streaming response
+  //   const sseStream = createSseStream(stream);
+    
+  //   for await (const event of sseStream) {
+  //     if (event.data === "[DONE]") {
+  //       res.write('data: [DONE]\n\n');
+  //       return res.end();
+  //     }
+      
+  //     try {
+  //       const content = JSON.parse(event.data).choices[0]?.delta?.content || '';
+  //       if (content) {
+  //         res.write(`data: ${JSON.stringify({ content })}\n\n`);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error parsing chunk:', error);
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.error('Chat error:', error);
+  //   res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+  //   res.end();
+  // }
 });
 
 // Static file serving comes last
