@@ -22,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
-  'https://otoaneba.github.io'
+  'https://otoaneba.github.io/moneyball'
 ];
 
 // Update CORS setup
