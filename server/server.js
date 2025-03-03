@@ -20,27 +20,18 @@ const app = express();
 
 // Add environment variables support
 const PORT = process.env.PORT || 8080;
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'https://otoaneba.github.io'  // Base domain is what matters for CORS
-];
 
 // Update CORS setup
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Origin not allowed by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,  // Allow all origins for now
   methods: ['GET', 'POST'],
-  credentials: true
+  credentials: false,  // Set to false since we're not using cookies/auth
+  allowedHeaders: ['Content-Type']
 }));
+
+// Add OPTIONS handling for preflight requests
+app.options('*', cors());  // Enable pre-flight for all routes
+
 app.use(express.json());
 
 // Add logging middleware

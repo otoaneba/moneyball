@@ -30,8 +30,12 @@ export async function getChatCompletion(messages) {
     // Send POST request first
     fetch(`${API_URL}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      },
+      body: JSON.stringify({ messages }),
+      mode: 'cors'  // Explicitly set CORS mode
     }).then(response => {
       // Create reader from response stream
       const reader = response.body.getReader();
