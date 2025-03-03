@@ -1,8 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import App from './App.js';
+import reportWebVitals from './reportWebVitals.js';
+
+if (process.env.NODE_ENV === 'development') {
+  window.addEventListener('beforeunload', () => {
+    // Close any open WebSocket connections
+    if (window.ws) window.ws.close();
+  });
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

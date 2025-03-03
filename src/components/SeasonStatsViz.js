@@ -49,16 +49,6 @@ const STAT_GROUPS = {
   }
 };
 
-// Add stat type configurations
-const STAT_CONFIGS = {
-  avg: { min: 0, max: 0.4, isInverted: false },
-  obp: { min: 0, max: 0.5, isInverted: false },
-  era: { min: 0, max: 6, isInverted: true },
-  whip: { min: 0, max: 2, isInverted: true },
-  strikeoutsPer9Inn: { min: 0, max: 15, isInverted: false },
-  homeRuns: { min: 0, max: 300, isInverted: false },
-  // Add more stat configurations as needed
-};
 
 // Add a helper function for safe number formatting
 const formatNumber = (num) => {
@@ -104,7 +94,7 @@ const MANAGERS = [
   { name: 'Brian Snitker', startYear: 2016.4, endYear: 2024, color: '#ffcad4' }
 ];
 
-export function SeasonStatsViz({ data, isDarkMode }) {
+export function SeasonStatsViz({ data, isDarkMode, onFilterChange }) {
   const [statGroup, setStatGroup] = useState('hitting');
   const [yStat, setYStat] = useState('homeRuns');
   const [sizeStat, setSizeStat] = useState('avg');
@@ -632,7 +622,16 @@ export function SeasonStatsViz({ data, isDarkMode }) {
       .attr('fill', isDarkMode ? '#2d2d2d' : 'white')
       .attr('stroke', isDarkMode ? '#444' : '#ccc');
 
-  }, [statGroup, yStat, sizeStat, data, isDarkMode, activeTab]);
+  }, [statGroup, yStat, sizeStat, data, isDarkMode, activeTab, onFilterChange]);
+
+  // Add separate effect to notify parent of filter changes
+  useEffect(() => {
+    onFilterChange({
+      statType: statGroup,
+      yAxis: yStat,
+      bubbleRadius: sizeStat
+    });
+  }, [statGroup, yStat, sizeStat, onFilterChange]);
 
   return (
     <div className="chart-container">

@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SeasonStatsViz } from './components/SeasonStatsViz';
 import './App.css';
 import logo from './assets/images/t144_header_primary.svg';
+import ChatComponent from './components/ChatComponent';
 
 function App() {
   const [bravesStats, setBravesStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [selectedStatType, setSelectedStatType] = useState('pitching');
+  const [selectedYAxis, setSelectedYAxis] = useState('groundOuts');
+  const [selectedRadius, setSelectedRadius] = useState('walksPer9Inn');
+
+  const handleFilterChange = useCallback(({ statType, yAxis, bubbleRadius }) => {
+    setSelectedStatType(statType);
+    setSelectedYAxis(yAxis);
+    setSelectedRadius(bubbleRadius);
+  }, []);
 
   useEffect(() => {
     // Determine the data source based on environment
@@ -49,7 +59,19 @@ function App() {
           {isDarkMode ? '☀️' : '🌙'}
         </button>
       </div>
-      <SeasonStatsViz data={bravesStats} isDarkMode={isDarkMode} />
+      <div className="content-container">
+        <SeasonStatsViz 
+          data={bravesStats} 
+          isDarkMode={isDarkMode} 
+          onFilterChange={handleFilterChange}
+        />
+        <ChatComponent 
+          statType={selectedStatType}
+          yAxis={selectedYAxis}
+          bubbleRadius={selectedRadius}
+          isDarkMode={isDarkMode}
+        />
+      </div>
     </div>
   );
 }

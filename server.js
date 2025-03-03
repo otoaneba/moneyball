@@ -1,7 +1,15 @@
-const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
-const cors = require('cors');
+import express from 'express';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
+import { AzureOpenAI } from 'openai';
+import { DefaultAzureCredential, getBearerTokenProvider } from '@azure/identity';
+
+// ES modules fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 // Add minimal CORS setup
@@ -16,6 +24,55 @@ app.use((req, res, next) => {
     console.log('Headers:', req.headers);
     next();
 });
+
+const endpoint = "https://ai-supportdeepseekai250024594703.openai.azure.com/"; // "https://ai-supportdeepseekai250024594703.cognitiveservices.azure.com/";
+const deploymentId = "gpt-4o-mini"; //  "DeepSeek-R1-statstream";
+const apiVersion = "2024-05-01-preview";
+
+// Declare client at the top level
+let client;
+
+// Add more logging
+console.log('Setting up Azure OpenAI client...');
+console.log('Endpoint:', endpoint);
+console.log('Deployment ID:', deploymentId);
+
+try {
+  console.log('Initializing DefaultAzureCredential...');
+  // authencation with azure
+  const credential = new DefaultAzureCredential();
+  const scope = "https://cognitiveservices.azure.com/.default";
+  const azureADTokenProvider = getBearerTokenProvider(credential, scope);
+  
+  console.log('Creating AzureOpenAI client...');
+  
+  client = new AzureOpenAI({
+    apiVersion: apiVersion,
+    endpoint,
+    azure: {
+      deploymentName: deploymentId
+    },
+    azureADTokenProvider
+  });
+  
+  // Add test call to verify deployment
+  const testResponse = await client.chat.completions.create({
+    model: deploymentId,
+    messages: [
+      { role: "system", content: "You are an AI assistant that helps people with their questions. Always start the response with, 'Yo, what's up?'" }, 
+      { role: "user", content: "test" }],
+    max_tokens: 800
+  });
+  console.log('Test response:', testResponse);
+  
+} catch (error) {
+  console.error('Detailed initialization error:', {
+    message: error.message,
+    name: error.name,
+    stack: error.stack
+  });
+  process.exit(1);
+}
 
 // Update the /api/stats/all endpoint with better error handling
 app.get('/api/stats/all', async (req, res) => {
@@ -103,11 +160,35 @@ app.get('/api/stats/:year.json', async (req, res) => {
   }
 });
 
+app.post('/api/chat', async (req, res) => {
+  try {
+    console.log('Attempting to connect to Azure OpenAI...');
+    console.log('Endpoint:', endpoint);
+    console.log('Deployment:', deploymentId);
+    console.log('Messages:', req.body.messages);
+
+    const response = await client.chat.completions.create({
+      model: deploymentId,
+      messages: req.body.messages,
+      temperature: 0.7,
+      max_tokens: 800,
+    });
+
+    console.log('Response received:', response);
+    res.json({ content: response.choices[0].message.content });
+  } catch (error) {
+    console.error('Detailed error:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Static file serving comes last
 app.use('/api/stats', express.static(path.join(__dirname, 'public', 'stats')));
 app.use(express.static(path.join(__dirname, 'build')));
 
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-}); 
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 

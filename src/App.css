@@ -163,3 +163,17 @@
   border-color: #444;
   color: #fff;
 }
+
+.content-container {
+  max-width: 1300px;  /* Match the graph width */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Add these to ensure full height coverage */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+}
