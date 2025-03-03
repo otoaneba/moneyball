@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
-import { DefaultAzureCredential } from '@azure/identity';
+import { DefaultAzureCredential, ClientSecretCredential } from '@azure/identity';
 import ModelClient from '@azure-rest/ai-inference';  // Use default import
 import { isUnexpected } from "@azure-rest/ai-inference";
 import { createSseStream } from '@azure/core-sse';
@@ -50,31 +50,29 @@ const clientOptions = {
   }
 };
 
+// Add environment variable checks
+if (!process.env.AZURE_CLIENT_ID || !process.env.AZURE_TENANT_ID || !process.env.AZURE_CLIENT_SECRET) {
+  console.error('Missing required Azure credentials in environment variables');
+  process.exit(1);
+}
+
 // Initialize Azure AI client
 let client;
 try {
   console.log('Initializing Azure credentials and client...');
-  const credential = new DefaultAzureCredential();
+  let credential;
   
-  client = new ModelClient(
-    endpoint, 
-    credential,
-    clientOptions
-  );
-  
-  console.log('Client created successfully');
-} catch (error) {
-  console.error('Client initialization error:', {
-    message: error.message,
-    name: error.name,
-    stack: error.stack
-  });
-  process.exit(1);
-}
-
-try {
-  console.log('Initializing OpenAI Azure credentials and client...');
-  const credential = new DefaultAzureCredential();
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Using ClientSecretCredential for production');
+    credential = new ClientSecretCredential(
+      process.env.AZURE_TENANT_ID,
+      process.env.AZURE_CLIENT_ID,
+      process.env.AZURE_CLIENT_SECRET
+    );
+  } else {
+    console.log('Using DefaultAzureCredential for development');
+    credential = new DefaultAzureCredential();
+  }
   
   client = new ModelClient(
     endpoint, 
