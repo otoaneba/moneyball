@@ -230,7 +230,12 @@ app.post('/api/chat', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Chat error:', error.message);
+    console.error('Chat error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      response: error.response ? error.response.body : 'No response'
+    });
     if (!res.writableEnded) {
       res.status(500).json({ error: error.message });
     }
