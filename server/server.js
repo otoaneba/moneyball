@@ -206,7 +206,7 @@ app.post('/api/chat', async (req, res) => {
 
     // Use this for non-streaming response
     if (isUnexpected(response)) {
-      throw new Error('Unexpected response from Azure AI');
+      throw new Error('Unexpected response from Azure AI', response);
     }
     // Use this for streaming response
     // const stream = response.body;
