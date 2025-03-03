@@ -63,7 +63,7 @@ try {
   let credential;
   
   if (process.env.NODE_ENV === 'production') {
-    console.log('Using ClientSecretCredential for production');
+    console.log('Using ClientSecretCredential for production', process.env.AZURE_TENANT_ID, process.env.AZURE_CLIENT_ID, process.env.AZURE_CLIENT_SECRET);
     credential = new ClientSecretCredential(
       process.env.AZURE_TENANT_ID,
       process.env.AZURE_CLIENT_ID,
