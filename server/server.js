@@ -188,9 +188,9 @@ app.post('/api/chat', async (req, res) => {
   try {
     console.log('Sending chat request...');
     // Set SSE headers
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    // res.setHeader('Content-Type', 'text/event-stream');
+    // res.setHeader('Cache-Control', 'no-cache');
+    // res.setHeader('Connection', 'keep-alive');
 
     const response = await client.path("chat/completions").post({
       body: {
