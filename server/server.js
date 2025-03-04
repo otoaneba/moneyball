@@ -218,7 +218,7 @@ app.post('/api/chat', async (req, res) => {
     // if (!stream) {
     //   throw new Error('No stream received');
     // }
-    console.log('Stream received:', stream);
+    console.log('Stream received:', response.body);
   // Use this for non-streaming response
     if (!response.body?.choices?.[0]?.message?.content) {
       throw new Error('No content in response');
